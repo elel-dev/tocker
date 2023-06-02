@@ -1,6 +1,7 @@
 ## TOCKER
 
-A simple terminal user interface (TUI) for Docker.
+A simple terminal user interface (TUI) for Docker. 🐳
+
 
 ## WIP
 
@@ -8,7 +9,7 @@ This is going to take me a lot of time as I'm pretty busy. The idea is to do cre
 If you want to \#makeitgood, contact me! 
 
 ## Demo
-
+![tocker](https://github.com/elel-dev/tocker/assets/80210592/e3bf2863-f09b-45c7-9632-515bbce6aefb)
 
 ## Disclaimer
 
