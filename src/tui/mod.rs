@@ -157,6 +157,36 @@ impl Tui {
         String::from(string.trim())
     }
 
+    pub fn get_target(&mut self, first: &KeyEvent, second: &KeyEvent) -> Result<String, Error> {
+        self.update_moment(Moment::TARGET);
+        let target_type = self.check_combination(&first, &second)?;
+        match target_type {
+            TargetType::SELECT => loop {
+                self.update_commands_target()?;
+                let key_event = self.extract_key_event()?;
+                let select = self.check_select(key_event)?;
+                match select {
+                    Select::UP => self.add_cursor(),
+                    Select::DOWN => self.sub_cursor(),
+                    Select::SELECT => match self.state.content.get_mut(self.state.scroll.cursor) {
+                        Some(item) => item.selected = !item.selected,
+                        None => {}
+                    },
+                    Select::CANCEL => {
+                        self.go_to_first();
+                        break;
+                    }
+                    Select::CONFIRM => {
+                        break;
+                    }
+                }
+            },
+            _ => {}
+        }
+        let target_string = self.extract_target_string();
+        Ok(target_string)
+    }
+
     fn check_select(&mut self, key_event: KeyEvent) -> Result<&Select, Error> {
         self.tocker.check_select(key_event)
     }
@@ -306,32 +336,9 @@ impl Tui {
         let second = self.get_second()?;
 
         // check target type
-        let target_type = self.check_combination(&first, &second)?;
-        match target_type {
-            TargetType::SELECT => loop {
-                self.update_commands_target()?;
-                let key_event = self.extract_key_event()?;
-                let select = self.check_select(key_event)?;
-                match select {
-                    Select::UP => self.add_cursor(),
-                    Select::DOWN => self.sub_cursor(),
-                    Select::SELECT => match self.state.content.get_mut(self.state.scroll.cursor) {
-                        Some(item) => item.selected = !item.selected,
-                        None => {}
-                    },
-                    Select::CANCEL => {
-                        self.go_to_first();
-                        break;
-                    }
-                    Select::CONFIRM => {
-                        break;
-                    }
-                }
-            },
-            _ => {}
-        }
-        let target_string = self.extract_target_string();
+        let target_string = self.get_target(&first, &second)?;
 
+        // handle output (to be finished)
         let output = String::from_utf8(
             self.execute_cmd(&first, &second, &target_string)
                 .unwrap()
@@ -357,11 +364,11 @@ impl Tui {
 
     pub fn start_loop(&mut self) -> () {
         loop {
-            if let Err(err) = self.looping() {
-                self.state.content.push(ContentItem {
-                    text: String::from(err.to_string()),
-                    selected: false,
-                });
+            if let Err(_) = self.looping() {
+                // self.state.content.push(ContentItem {
+                //     text: String::from(err.to_string()),
+                //     selected: false,
+                // });
             }
         }
     }
